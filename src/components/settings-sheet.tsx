@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 
 import type { Settings } from "@/lib/types"
 import { Button } from "@/components/ui/button"
+import { ThemeSwitcher } from "@/components/theme-switcher"
 import {
   Sheet,
   SheetContent,
@@ -62,6 +63,7 @@ export function SettingsSheet(props: {
         </SheetHeader>
 
         <div className="mt-2 grid gap-6 px-4 pb-6">
+          <ThemeSwitcher />
           <div className="grid gap-2">
             <div className="text-sm font-medium">Pausas</div>
             <Select
