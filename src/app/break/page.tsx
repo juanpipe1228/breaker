@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BREAK_COOLDOWN_MS, STORAGE_KEYS, WORK_INTERVAL_MS } from "@/lib/constants"
 import { getScienceReward } from "@/lib/science-rewards"
 import { readJson, writeJson } from "@/lib/storage"
+import { playNotificationMelody } from "@/lib/audio"
 import type { BreakState, Settings, TimerState } from "@/lib/types"
 
 const DEFAULT_SETTINGS: Settings = {
@@ -160,47 +161,7 @@ export default function BreakPage() {
 
     const beep = async () => {
       if (!settings.soundEnabled) return
-
-      let unlocked = false
-      try {
-        unlocked = window.localStorage.getItem("breaker:audioUnlocked") === "true"
-      } catch {
-        unlocked = false
-      }
-
-      if (!unlocked) return
-
-      const w = window as unknown as { __breakerAudioCtx?: AudioContext }
-      const webkit = window as unknown as { webkitAudioContext?: typeof AudioContext }
-      const Ctx = window.AudioContext || webkit.webkitAudioContext
-      if (!Ctx) return
-
-      if (!w.__breakerAudioCtx) {
-        w.__breakerAudioCtx = new Ctx()
-      }
-
-      const ctx = w.__breakerAudioCtx
-      if (ctx.state === "suspended") {
-        try {
-          await ctx.resume()
-        } catch {
-          return
-        }
-      }
-
-      try {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = "sine"
-        osc.frequency.value = 700
-        gain.gain.value = 0.12
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start()
-        osc.stop(ctx.currentTime + 0.25)
-      } catch {
-        return
-      }
+      await playNotificationMelody()
     }
 
     const sendNotification = () => {
@@ -246,7 +207,7 @@ export default function BreakPage() {
 
       if (intervalId) return
       tick()
-      intervalId = window.setInterval(tick, 800)
+      intervalId = window.setInterval(tick, 2000)
     }
 
     const onVisibility = () => {

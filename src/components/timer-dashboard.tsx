@@ -11,6 +11,7 @@ import { readJson, writeJson } from "@/lib/storage"
 import type { BreakState, Settings, TimerState } from "@/lib/types"
 import { getMovementSnack } from "@/lib/mock-ai"
 import { getScienceReward } from "@/lib/science-rewards"
+import { primeAudio, playNotificationMelody } from "@/lib/audio"
 
 const DEFAULT_SETTINGS: Settings = {
   mode: "office",
@@ -78,92 +79,6 @@ function notify(title: string, body: string) {
         return
       }
     }
-  } catch {
-    return
-  }
-}
-
-async function primeAudio(): Promise<void> {
-  if (typeof window === "undefined") return
-
-  const w = window as unknown as { __breakerAudioCtx?: AudioContext }
-  const webkit = window as unknown as { webkitAudioContext?: typeof AudioContext }
-  const Ctx = window.AudioContext || webkit.webkitAudioContext
-  if (!Ctx) return
-
-  if (!w.__breakerAudioCtx) {
-    w.__breakerAudioCtx = new Ctx()
-  }
-
-  const ctx = w.__breakerAudioCtx
-  if (ctx.state === "suspended") {
-    try {
-      await ctx.resume()
-    } catch {
-      return
-    }
-  }
-
-  try {
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    gain.gain.value = 0
-    osc.frequency.value = 440
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.01)
-  } catch {
-    return
-  }
-
-  try {
-    window.localStorage.setItem("breaker:audioUnlocked", "true")
-  } catch {
-    return
-  }
-}
-
-async function beepOnce(): Promise<void> {
-  if (typeof window === "undefined") return
-
-  let unlocked = false
-  try {
-    unlocked = window.localStorage.getItem("breaker:audioUnlocked") === "true"
-  } catch {
-    unlocked = false
-  }
-
-  if (!unlocked) return
-
-  const w = window as unknown as { __breakerAudioCtx?: AudioContext }
-  const webkit = window as unknown as { webkitAudioContext?: typeof AudioContext }
-  const Ctx = window.AudioContext || webkit.webkitAudioContext
-  if (!Ctx) return
-
-  if (!w.__breakerAudioCtx) {
-    w.__breakerAudioCtx = new Ctx()
-  }
-
-  const ctx = w.__breakerAudioCtx
-  if (ctx.state === "suspended") {
-    try {
-      await ctx.resume()
-    } catch {
-      return
-    }
-  }
-
-  try {
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = "sine"
-    osc.frequency.value = 880
-    gain.gain.value = 0.12
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.25)
   } catch {
     return
   }
@@ -308,7 +223,7 @@ export function TimerDashboard() {
     }))
 
     await primeAudio()
-    await beepOnce()
+    await playNotificationMelody()
     notify("Breaker", "Prueba de alerta: haz click para volver")
   }
 
