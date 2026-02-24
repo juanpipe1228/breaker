@@ -79,7 +79,7 @@ export function SettingsSheet(props: {
                 <SelectValue placeholder={workIntervalLabel} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0.2">Cada 1 min</SelectItem>
+                <SelectItem value="1">Cada 1 min</SelectItem>
                 <SelectItem value="20">Cada 20 min</SelectItem>
                 <SelectItem value="30">Cada 30 min</SelectItem>
                 <SelectItem value="40">Cada 40 min</SelectItem>
